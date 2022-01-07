@@ -43,9 +43,22 @@ def localidades() -> Response:
 def ir_votar(localidad: str) -> Response:
     address = request.form.get('address')
 
+    elecciones = {
+        'presidente': [
+            'Candidato1',
+            'Candidato2',
+            'Candidato3'
+        ],
+        "gobernador": [
+            'Candidato1',
+            'Candidato2',
+            'Candidato3'
+        ]
+    }
     # Buscar candidatos segun la localidad
 
-    return Response(json.dumps(localidades))
+
+    return Response(json.dumps(elecciones))
 
 
 @app.route("/api/votar/<string:localidad>/", methods=['POST'])

@@ -13,7 +13,7 @@
     
 
     <style>
-        #wrap{
+        .wrap{
             width: 100vw;
             height: 50vh;
             display: flex;
@@ -31,12 +31,25 @@
             margin: 10px 0;
         }
 
+        .w75{
+            width: 75vw;
+        }
+
+        .m10{
+            margin: 10px 0;
+        }
+
+        .hauto{
+            height: auto;
+        }
+
     </style>
 
 </head>
 <body>
     
-    <div id="wrap">
+    <!-- HOME -->
+    <div id="wrap-home" class='wrap'>
 
         <div class="card">
             <div class="card-body center">
@@ -52,7 +65,44 @@
                     </ul>
                 </div>
 
-                <button type="button" class="btn btn-success" onclick="IrAVotar()">Votar</button>
+                <button type="button" class="btn btn-success" onclick="postVotante()">Votar</button>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- VOTACION -->
+    <div id="wrap-votacion" class='wrap center hauto' style="display: None;">
+
+        <!-- PRESIDENTE -->
+        <div class="card w75 m10">
+            <div class="card-body center">
+                <h2 class="card-title">Votaciones Presidenciales</h2>
+                <div id="votar-presidente" class="row"></div>
+            </div>
+        </div>
+
+        <!-- GOBERNADOR -->
+        <div class="card w75 m10">
+            <div class="card-body center">
+                <h2 class="card-title">Votaciones Gubernamentales</h2>
+                <div id="votar-gobernador" class="row"></div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-success" onclick="votar()">VOTAR</button>
+    </div>
+
+
+    <!-- VOTACION TERMINADA -->
+    <div id="wrap-final" class="wrap" style="display: None;">
+
+        <div class="card">
+            <div class="card-body">
+                
+                <h2>Se ha registrado su voto satisfactoriamente</h2>
 
             </div>
         </div>
@@ -70,21 +120,25 @@
     <script>
         const API_URL = 'http://localhost:5000/api';
         let localidades = [];
+        let currentState = 'home';
+        let states = ['home', 'votacion', 'final'];
         let localidadSelected = null;
         let metamaskConectado = null;
+        let persidenteSelected = null;
+        let gobernadorSelected = null;
 
         // EVENTS
 
         // POST REQUEST
         const postrequest = async (path, body) => {
-            const myRequest = new Request(`${API_URL}${path}`, {method: 'POST', body: JSON.stringify(body)});
+            const request = new Request(`${API_URL}${path}`, {method: 'POST', body: JSON.stringify(body)});
             
             let response;
             response = await fetch(request)
                 .then( response => { return response.json() })
-                .catch( error => { console.error(error)})
+                .catch( error => { console.error("Ocurrio un error", error)});
             
-            return response
+            return await response
         }
         
         // GET REQUEST
@@ -109,6 +163,38 @@
         }
 
         // FUNCIONES 
+
+        // Funcion de transicion
+        let changeState = (newState) => {
+            if (newState == 'votacion'){
+                let page = document.getElementById('wrap-home');
+                page.style = "display: None;"
+                page = document.getElementById('wrap-final');
+                page.style = "display: None;"
+                page = document.getElementById('wrap-votacion');
+                page.style = "display: flex;"
+                currentState = 'votacion'
+            }
+            else if (newState == 'final'){
+                let page = document.getElementById('wrap-home');
+                page.style = "display: None;"
+                page = document.getElementById('wrap-votacion');
+                page.style = "display: None;"
+                page = document.getElementById('wrap-final');
+                page.style = "display: flex;"
+                currentState = 'final'
+            }
+            else {
+                page = document.getElementById('wrap-final');
+                page.style = "display: None;"
+                page = document.getElementById('wrap-votacion');
+                page.style = "display: None;"
+                let page = document.getElementById('wrap-home');
+                page.style = "display: flex;"
+                currentState = 'home'
+            }
+        }
+
         // Obtener las localidades registradas en el SC
         let getLocalidades = async () => {
             // Obtener localidades
@@ -116,15 +202,17 @@
 
             // Colocar las localidades en el dropdown
             let dd = document.getElementById('localidades');
-            for (let localidad of localidades){
-                // Crear el elemento
-                let li = document.createElement('li');
-                let button = document.createElement('button');
-                button.classList = 'dropdown-item localidad-item';
-                button.appendChild(document.createTextNode(localidad))
-                li.appendChild(button);
-                dd.appendChild(li);
-            }
+            localidades.forEach(
+                localidad => {
+                    // Crear el elemento
+                    let li = document.createElement('li');
+                    let button = document.createElement('button');
+                    button.classList = 'dropdown-item localidad-item';
+                    button.appendChild(document.createTextNode(localidad))
+                    li.appendChild(button);
+                    dd.appendChild(li);
+                }
+            )
 
             // Agregar evento cuando se haga click
             document.querySelectorAll('.localidad-item').forEach(
@@ -160,23 +248,110 @@
             metamaskConectado = await window.ethereum.enable();
             metamaskConectado = await metamaskConectado;
             metamaskConectado = metamaskConectado[0];
+            alert("Se ha Conectado metamask")
             return;
         }
+
+
+        let createCandidatoCard = (candidato, idRow) => {
+            let title = document.createElement('h5');
+            title.classList = "card-title";
+            title.textContent = candidato;
+
+            let button = document.createElement('button');
+            button.classList = "btn btn-info";
+            button.textContent = "Votar";
+            button.dataset.candidato = candidato
+            button.addEventListener('click',
+                event => {
+                    // Limpiar voto
+                    let x = document.getElementById(idRow);
+                    x.childNodes.forEach(
+                        col => {
+                            if(col.hasChildNodes()){
+                                col.firstChild.style.backgroundColor = "#fff";
+                            }
+                        }
+                    )
+                    // Guardar candidato
+                    console.log("VOTAR POR: ", event.target.dataset.candidato);
+                    persidenteSelected = event.target.dataset.candidato
+                    event.target.parentElement.parentElement.style.backgroundColor = '#ccc';
+                }
+            )
+
+            let cardBody = document.createElement("div");
+            cardBody.classList = "card-body";
+            cardBody.appendChild(title);
+            cardBody.appendChild(button);
+            
+            let card = document.createElement("div");
+            card.classList = "card";
+            card.appendChild(cardBody);
+
+            let col = document.createElement('div');
+            col.classList = 'col-4';
+            col.appendChild(card);
+
+            return col
+        } 
 
         // Verificar que el votante esta registrado y obtener los candidatos de la localidad elegida
         let postVotante = async (address, localidad) => {
 
+            // Verificacion
             if (!isMetamaskConectado()){
                 alert("Necesitas estar conectado con MetaMask");
                 return;
             }
 
+            if (!localidadSelected){
+                alert ("Necesitas seleccionar una localidad");
+                return;
+            }
+
+            // Traer la info de votacion
             const body = {
                 address: metamaskConectado,
             }
-            const response = await postrequest(`/votar/${localidad}/`, body)
-            await response
+            const response = await postrequest(`/votar/${localidadSelected}/`, body);
+            
+            // Acomodar la vista de votacion
+            let candidatosPresi = response.presidente;
+            let candidatosGob = response.gobernador;
+            let rowPresi = document.getElementById('votar-presidente');
+            let rowGob = document.getElementById('votar-gobernador');
+
+            candidatosPresi.forEach(
+                candidato => {
+                    let col = createCandidatoCard(candidato, 'votar-presidente');
+                    rowPresi.appendChild(col);
+                }
+            )
+            // Agregar voto blanco
+            rowPresi.appendChild(createCandidatoCard("VOTO BLANCO", 'votar-presidente'));
+
+            candidatosGob.forEach(
+                candidato => {
+                    let col = createCandidatoCard(candidato, 'votar-gobernador');
+                    rowGob.appendChild(col);
+                }
+            )
+            // Agregar Voto Blanco
+            rowGob.appendChild(createCandidatoCard("VOTO BLANCO", 'votar-gobernador'));
+
+            changeState('votacion');
+
+            return;
+
         }
+
+        let votar = () => {
+            if (!persidenteSelected){
+                alert("Tiene que seleccionar un candidato a Presidencia");
+            }
+        }
+
 
         // EJECUCIONES AL INICIAR
         getLocalidades();
