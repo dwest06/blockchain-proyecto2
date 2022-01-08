@@ -61,18 +61,19 @@ def ir_votar(localidad: str) -> Response:
     return Response(json.dumps(elecciones))
 
 
-@app.route("/api/votar/<string:localidad>/", methods=['POST'])
-def registrar_voto(localidad: str) -> Response:
-    address = request.form.get('address')
-    votacion = request.form.get('votacion')
-    candidato = request.form.get('candidato')
-
-
+@app.route("/api/votar/", methods=['POST'])
+def registrar_voto() -> Response:
+    data = request.get_json(force=True) 
+    address = data.get('address')
+    localidad = data.get('localidad')
+    candidatoPresi = data.get('presidente')
+    candidatoGob = data.get('gobernador')
+    print(address, localidad, candidatoPresi, candidatoGob)
 
     # Generar la transaccion dado los datos del votante
-    transaction = generate_transaction(address, votacion, candidato)
+    # transaction = generate_transaction(address, votacion, candidato)
 
     # Enviar la transaccion a la blockchain
-    send_to_blockchain(transaction)
+    # send_to_blockchain(transaction)
 
-    return Response("Se ha registrado el voto", status=200)
+    return Response(json.dumps("Se ha registrado el voto"), status=200)

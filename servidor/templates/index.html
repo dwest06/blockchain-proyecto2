@@ -97,7 +97,7 @@
 
 
     <!-- VOTACION TERMINADA -->
-    <div id="wrap-final" class="wrap" style="display: None;">
+    <div id="wrap-final" class="wrap centrar" style="display: None;">
 
         <div class="card">
             <div class="card-body">
@@ -121,7 +121,7 @@
         const API_URL = 'http://localhost:5000/api';
         let localidades = [];
         let currentState = 'home';
-        let states = ['home', 'votacion', 'final'];
+        let states = ['home', 'votacion', 'final', 'resultados'];
         let localidadSelected = null;
         let metamaskConectado = null;
         let persidenteSelected = null;
@@ -131,6 +131,7 @@
 
         // POST REQUEST
         const postrequest = async (path, body) => {
+            console.log(JSON.stringify(body))
             const request = new Request(`${API_URL}${path}`, {method: 'POST', body: JSON.stringify(body)});
             
             let response;
@@ -274,8 +275,10 @@
                         }
                     )
                     // Guardar candidato
-                    console.log("VOTAR POR: ", event.target.dataset.candidato);
-                    persidenteSelected = event.target.dataset.candidato
+                    if (idRow === 'votar-presidente')
+                        persidenteSelected = event.target.dataset.candidato
+                    else 
+                        gobernadorSelected = event.target.dataset.candidato
                     event.target.parentElement.parentElement.style.backgroundColor = '#ccc';
                 }
             )
@@ -346,10 +349,33 @@
 
         }
 
-        let votar = () => {
+        let votar = async () => {
             if (!persidenteSelected){
-                alert("Tiene que seleccionar un candidato a Presidencia");
+                alert("Tiene que seleccionar un opcion a Presidencia");
+                return;
             }
+
+            if (!gobernadorSelected){
+                alert("Tiene que seleccionar un opcion a Presidencia");
+                return;
+            }
+
+            const body = {
+                address: metamaskConectado,
+                localidad: localidadSelected,
+                presidente: persidenteSelected,
+                gobernador: gobernadorSelected
+            }
+            console.log(body);
+            const response = await postrequest(`/votar/`, body);
+            if (!response){
+                alert("Ha ocurrido un error al procesar el voto");
+                return;
+            }
+
+            alert(response)
+
+            // changeState('final')
         }
 
 
