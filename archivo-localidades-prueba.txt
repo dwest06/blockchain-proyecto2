@@ -1,0 +1,5 @@
+Local1 1 numeroCentrosVotación1
+Local2 2 numeroCentrosVotación2
+Local3 3 numeroCentrosVotación3
+Local4 4 numeroCentrosVotación4
+Local5 5 numeroCentrosVotación5
