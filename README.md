@@ -150,6 +150,8 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
             - localidad
         - Localidad
             - Numero de Centros de Votacion
+
+
     - Metodo para inicializar el escenario: (Puede ser el constructor del contrato)
     - Metodo para Reinicializar el escenario: Mismo que inicializar pero un metodo a parte
     - Metodo para Registrar las localidades:
@@ -175,6 +177,5 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
     - 
 
 ## Dudas
-- El servidor de votacion es una instancia de servidor por centro electoral o es uno generico?
 - La parte de Escenario Electoral dice para interactuar con el centro1, por que especificamente con el centro1?
 - En que momento se deberia crear o reinicializar el contrato inteligente? puede ser despues de generar los votantes, el Escenario de Votacion y la estructura de los candidatos

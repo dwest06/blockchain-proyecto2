@@ -15,74 +15,83 @@ contract Votacion {
     struct Votante{
         address id;
         string nombre;
-        Localidad localidad;
-        bool yaVoto;
+        string localidad;
     }
 
     struct Candidato{
         address id;
         string nombre;
-        uint256 votos;
+        string localidad;
         Cargo cargo;
-        Localidad localidad;
+        uint256 votos;
     }
 
     // Variables de entorno
+    address public owner; // Propietario del contrato
     string public nombreVotacion; // Nombre de la Votacion
     bool public votacionAbierta; // Variable para saber si la votacion esta abierta o no
-    uint256 totalVotantes; // Total de los votantes
+    uint256 totalVotantes; // Total de los votantes que han participado en la votacion
+
+    // Localidades, Votantes
+    mapping (string => uint) indexLocalidades;
     Localidad[] public localidades; // Lista de las localidades registradas
-    Candidato[] public candidatos; // Lista de los candidatos registrados
+    mapping (address => uint) indexVotantes;
     Votante[] public votantes; // Lista de los votantes registrados
 
-    // OJOPELAO
-    mapping (address => Votante) public registroVotantes; // Registro de los votantes
+    // Estructuras de Votantes y Candidatos 
+    mapping (string => address[]) public votantesLocalidad; // Obtener lista de Votantes de una localidad
+    mapping( string => mapping (address => uint )) public indexCandidatoGobernadorLocalidad;
+    mapping (string => Candidato[]) public candidatosGobernadorLocalidad; //Obtener lista de Candidatos a Gobernacion por localidad
+    mapping (address => uint) public indexCandidatosPresidente;
+    Candidato[] public candidatosPresidente; //Obtener lista de Candidatos a Presidencia
 
-    address public owner; // Propietario del contrato
+    // Registro de votantes 
+    mapping (address => bool) public registroVotantes; // Registro de los votantes
+
+
 
     // Eventos
     event LocalidadRegistrada(Localidad localidad);
     event VotanteRegistrado(Votante votante);
     event CandidatoRegistrado(Candidato candidato);
     event VotacionCerrada();
-    // event VotoRegistrado();
 
     // Modifiers
     modifier isOwner(){
-        require( owner == msg.sender, "Solo el propietario del contrato tiene permiso de realizar esta accion");
+        require( owner == msg.sender, "Solo el propietario del contrato tiene permiso de realizar esta accion.");
         _;
     }
-
-    // OJOPELAO
-    modifier yaVoto(Votante memory votante){
-        require(!votante.yaVoto, "Ya votaste");
-        _;
-    }
-
     modifier estaVotacionAbierta(){
-        require(votacionAbierta, "Ya la votacion cerro");
+        require(votacionAbierta, "Ya la votacion cerro.");
+        _;
+    }
+    modifier isVotante(address id){
+        Votante memory votante = buscarVotante(id);
+        require ( votante.id > address(0) , "Esta address no se encuentra registrada como votante.");
+        _;
+    }
+    modifier yaVoto(){
+        require( !registroVotantes[msg.sender], "Ya realizo su voto.");
         _;
     }
     constructor(
         string memory _nombreVotacion
     ){
         owner = msg.sender;
-        reinizializar(_nombreVotacion);
+        reinicializar(_nombreVotacion);
     }
 
     /**
         @notice Inicializar o Reinicializar una votacion
         @param _nombreVotacion nombre de la Votacion
      */
-    function reinizializar(
+    function reinicializar(
         string memory _nombreVotacion
     ) public isOwner{
-        // NOTE: Verificar si hay que borrar las Localidades, Votantes y Candidatos previamente guardados
-        // Probablemente los Candidatos y Votantes si, pero las Localidades hay que preguntar
-
         totalVotantes = 0;
         nombreVotacion = _nombreVotacion;
         votacionAbierta = true;
+
     }
 
     /**
@@ -91,26 +100,21 @@ contract Votacion {
         @param numCentros numero de centros de votacion disponibles en la nueva localidad
      */
     function registrarLocalidad(string memory nombre, uint numCentros) public isOwner{
+        // TODO: Preguntar si es necesario verificar que el numero de centro sea mayor a 0
         Localidad memory localidad = Localidad(nombre, numCentros);
         localidades.push(localidad);
+        uint index = localidades.length - 1;
+        indexLocalidades[nombre] = index;
         emit LocalidadRegistrada(localidad);
-    }
-
-    /**
-        @notice Registrar un Candidato
-        @param id address del candidato
-        @param nombre nombre del candidato
-        @param cargo Cargo de la candidatura
-        @param nombreLocalidad nombre de la localidad del cargo
-     */
-    function registrarCandidato(address id, string memory nombre, Cargo cargo, string memory nombreLocalidad) public isOwner{
     }
 
     /**
         @notice Buscar Localidad
         @param nombre nombre de la localidad a buscar
      */
-    function buscarLocalidad(string memory nombre) private returns ( Localidad memory){
+    function buscarLocalidad(string memory nombre) private view returns (Localidad memory){
+        uint index = indexLocalidades[nombre];
+        return localidades[index];
     }
 
     /**
@@ -120,14 +124,94 @@ contract Votacion {
         @param nombreLocalidad nombre de la localidad del cargo
      */
     function registrarVotante(address id, string memory nombre, string memory nombreLocalidad) public isOwner{
+        // Verificar que la localidad exista
+        // Verificar que no exista el address ya registrado como votante
+        Votante memory votante = Votante(id, nombre, nombreLocalidad);
+        votantes.push(votante);
+        uint index = votantes.length - 1;
+        indexVotantes[id] = index;
+        emit VotanteRegistrado(votante);
+    }
 
+    /**
+        @notice Buscar Votante
+        @param id address del votante a buscar
+     */
+    function buscarVotante(address id) private view returns (Votante memory){
+        uint index = indexVotantes[id];
+        return votantes[index];
+    }
+
+    /**
+        @notice Registrar un Candidato
+        @param id address del candidato
+        @param nombre nombre del candidato
+        @param cargo Cargo de la candidatura
+        @param localidad localidad del cargo
+     */
+    function registrarCandidato(address id, string memory nombre, Cargo cargo, string memory localidad) public isOwner isVotante(id){
+        // Verificar que la localidad exista
+        // Verificar que exista el address ya registrado como votante
+        // Verificar que que el address no exista registrado como otro votante independiente de la localidad
+
+
+        // Crear el candidato
+        Candidato memory candidato = Candidato(id, nombre, localidad, cargo, 0 );
+        // Verificar donde guardarlo
+        if( cargo == Cargo.Presidente){
+            candidatosPresidente.push(candidato);
+            uint index = candidatosPresidente.length - 1;
+            indexCandidatosPresidente[id] = index; 
+        }
+        else {
+            Candidato[] storage _candidatos = candidatosGobernadorLocalidad[localidad];
+            _candidatos.push(candidato);
+            uint index = _candidatos.length - 1;
+            indexCandidatoGobernadorLocalidad[localidad][id] = index;
+        }
+        // Registrar el candidato
+        emit CandidatoRegistrado(candidato);
+    }
+
+    /**
+        @notice Buscar Candidato Presidente
+        @param id address del votante a buscar
+     */
+    function buscarCandidatoPresidente(address id) private view returns (Candidato storage){
+        uint index = indexCandidatosPresidente[id];
+        return candidatosPresidente[index];
+    }
+
+    /**
+        @notice Buscar Candidato Gobernador
+        @param id address del votante a buscar
+     */
+    function buscarCandidatoGobernador(string memory localidad, address id) private view returns (Candidato storage){
+        uint index = indexCandidatoGobernadorLocalidad[localidad][id];
+        return candidatosGobernadorLocalidad[localidad][index];
     }
 
     /**
         @notice Votar
-        @param candidato address del candidato a votar
+        @param localidad Nombre de la localidad
+        @param idCandidatoPresidente address del candidato a votar para el puesto de Presidente
+        @param idCandidatoGobernador address del candidato a votar para el puesto de gobernador de la localidad
      */
-    function votar(address candidato) public estaVotacionAbierta returns (bool){
+    function votar(
+        string memory localidad, 
+        address idCandidatoPresidente, 
+        address idCandidatoGobernador
+    ) public estaVotacionAbierta isVotante(msg.sender) yaVoto returns (bool){
+        // Buscar Candidato a Presidente y sumarle 1 a los votos
+        Candidato storage candidatoPresi = buscarCandidatoPresidente(idCandidatoPresidente);
+        candidatoPresi.votos += 1;
+        // Buscar Candidato a Gobernador y sumarle 1 a los votos
+        Candidato storage candidatoGob = buscarCandidatoGobernador(localidad, idCandidatoGobernador);
+        candidatoGob.votos += 1;
+
+        // Registrar voto del votante
+        registroVotantes[msg.sender] = true;
+        return true;
     }
 
     /**
@@ -142,13 +226,63 @@ contract Votacion {
         @notice Regresar ganadores con sus porcentajes
         @return Lista Ordenada de los ganadores con su porcentaje
      */
-    function reporteGanadores() public returns (bool){
+    function reporteGanadores() public view returns (Candidato memory , Candidato[] memory ){
+        // TODO: Hay que verificar que ya se haya cerrado la votacion?
+
+        // Ganador de presidencia
+        Candidato memory ganadorPresidencia;
+        uint mayor = 0;
+        for( uint i = 0; i < candidatosPresidente.length; i+=1){
+            if ( candidatosPresidente[i].votos > mayor){
+                ganadorPresidencia = candidatosPresidente[i];
+            }
+        }
+
+        // Ganadores Gobernaciones
+        uint countLocalidades = localidades.length;
+        Candidato[] memory ganadoresGobernacion = new Candidato[](countLocalidades);
+        for( uint j = 0; j < localidades.length; j+=1){
+            Localidad memory localidad = localidades[j];
+            Candidato[] memory candidatos = candidatosGobernadorLocalidad[localidad.nombre];
+            mayor = 0;
+            for( uint k = 0; k < candidatos.length; k+=1){
+                if (candidatos[k].votos > mayor){
+                    ganadoresGobernacion[j] = (candidatos[k]);
+                }
+            }
+        }
+        return (ganadorPresidencia, ganadoresGobernacion);
     }
 
     /**
-        @notice Generar un reporte de los ganadores de una localidad
+        @notice Generar un reporte de una localidad
         @return Lista de candidatos de una localidad
      */
-    function reporteLocalidad(string memory localidad) public returns (bool){
+    function reporteLocalidad(string memory localidad) public view returns (bool){
     }
+
+
+    // GETTERS
+
+    function getLocalidades() public view returns(Localidad[] memory _localidades){
+        return localidades;
+    }
+
+    function getLocalidad(string memory nombre) public view returns(Localidad memory localidad){
+        return buscarLocalidad(nombre);
+    }
+
+    function getCandidatos(string memory localidad, Cargo cargo) public view returns (Candidato[] memory candidats){
+        if( cargo == Cargo.Presidente){
+            return candidatosPresidente;
+        }
+        else {
+            return candidatosGobernadorLocalidad[localidad];
+        }   
+    }
+
+    function getVotante(address id) public view returns (Votante memory votant){
+        return buscarVotante(id);
+    }
+
 }

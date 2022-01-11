@@ -1,0 +1,840 @@
+{
+	"compiler": {
+		"version": "0.8.7+commit.e28d00a7"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_nombreVotacion",
+						"type": "string"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "localidad",
+								"type": "string"
+							},
+							{
+								"internalType": "enum Votacion.Cargo",
+								"name": "cargo",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "votos",
+								"type": "uint256"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct Votacion.Candidato",
+						"name": "candidato",
+						"type": "tuple"
+					}
+				],
+				"name": "CandidatoRegistrado",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "numCentros",
+								"type": "uint256"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct Votacion.Localidad",
+						"name": "localidad",
+						"type": "tuple"
+					}
+				],
+				"name": "LocalidadRegistrada",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [],
+				"name": "VotacionCerrada",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "localidad",
+								"type": "string"
+							}
+						],
+						"indexed": false,
+						"internalType": "struct Votacion.Votante",
+						"name": "votante",
+						"type": "tuple"
+					}
+				],
+				"name": "VotanteRegistrado",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "candidatosGobernadorLocalidad",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "id",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Votacion.Cargo",
+						"name": "cargo",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "votos",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "candidatosPresidente",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "id",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Votacion.Cargo",
+						"name": "cargo",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "votos",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "cerrarVotacion",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Votacion.Cargo",
+						"name": "cargo",
+						"type": "uint8"
+					}
+				],
+				"name": "getCandidatos",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "localidad",
+								"type": "string"
+							},
+							{
+								"internalType": "enum Votacion.Cargo",
+								"name": "cargo",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "votos",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Votacion.Candidato[]",
+						"name": "candidats",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					}
+				],
+				"name": "getLocalidad",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "numCentros",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Votacion.Localidad",
+						"name": "localidad",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "getLocalidades",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "numCentros",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Votacion.Localidad[]",
+						"name": "_localidades",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "id",
+						"type": "address"
+					}
+				],
+				"name": "getVotante",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "localidad",
+								"type": "string"
+							}
+						],
+						"internalType": "struct Votacion.Votante",
+						"name": "votant",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "indexCandidatoGobernadorLocalidad",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "indexCandidatosPresidente",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "localidades",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "numCentros",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "nombreVotacion",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "id",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "enum Votacion.Cargo",
+						"name": "cargo",
+						"type": "uint8"
+					},
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					}
+				],
+				"name": "registrarCandidato",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "numCentros",
+						"type": "uint256"
+					}
+				],
+				"name": "registrarLocalidad",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "id",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "nombreLocalidad",
+						"type": "string"
+					}
+				],
+				"name": "registrarVotante",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "registroVotantes",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_nombreVotacion",
+						"type": "string"
+					}
+				],
+				"name": "reinicializar",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "reporteGanadores",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "localidad",
+								"type": "string"
+							},
+							{
+								"internalType": "enum Votacion.Cargo",
+								"name": "cargo",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "votos",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Votacion.Candidato",
+						"name": "",
+						"type": "tuple"
+					},
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "id",
+								"type": "address"
+							},
+							{
+								"internalType": "string",
+								"name": "nombre",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "localidad",
+								"type": "string"
+							},
+							{
+								"internalType": "enum Votacion.Cargo",
+								"name": "cargo",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "votos",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct Votacion.Candidato[]",
+						"name": "",
+						"type": "tuple[]"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					}
+				],
+				"name": "reporteLocalidad",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "votacionAbierta",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "votantes",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "id",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "nombre",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "votantesLocalidad",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "localidad",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "idCandidatoPresidente",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "idCandidatoGobernador",
+						"type": "address"
+					}
+				],
+				"name": "votar",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {
+				"registrarCandidato(address,string,uint8,string)": {
+					"params": {
+						"cargo": "Cargo de la candidatura",
+						"id": "address del candidato",
+						"localidad": "localidad del cargo",
+						"nombre": "nombre del candidato"
+					}
+				},
+				"registrarLocalidad(string,uint256)": {
+					"params": {
+						"nombre": "nombre de la nueva localidad",
+						"numCentros": "numero de centros de votacion disponibles en la nueva localidad"
+					}
+				},
+				"registrarVotante(address,string,string)": {
+					"params": {
+						"id": "address del Votante",
+						"nombre": "nombre del Votante",
+						"nombreLocalidad": "nombre de la localidad del cargo"
+					}
+				},
+				"reinicializar(string)": {
+					"params": {
+						"_nombreVotacion": "nombre de la Votacion"
+					}
+				},
+				"reporteGanadores()": {
+					"returns": {
+						"_0": "Lista Ordenada de los ganadores con su porcentaje"
+					}
+				},
+				"reporteLocalidad(string)": {
+					"returns": {
+						"_0": "Lista de candidatos de una localidad"
+					}
+				},
+				"votar(string,address,address)": {
+					"params": {
+						"idCandidatoGobernador": "address del candidato a votar para el puesto de gobernador de la localidad",
+						"idCandidatoPresidente": "address del candidato a votar para el puesto de Presidente",
+						"localidad": "Nombre de la localidad"
+					}
+				}
+			},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {
+				"cerrarVotacion()": {
+					"notice": "Cerrar Votacion"
+				},
+				"registrarCandidato(address,string,uint8,string)": {
+					"notice": "Registrar un Candidato"
+				},
+				"registrarLocalidad(string,uint256)": {
+					"notice": "Registrar una nueva localidad"
+				},
+				"registrarVotante(address,string,string)": {
+					"notice": "Registrar un Votante"
+				},
+				"reinicializar(string)": {
+					"notice": "Inicializar o Reinicializar una votacion"
+				},
+				"reporteGanadores()": {
+					"notice": "Regresar ganadores con sus porcentajes"
+				},
+				"reporteLocalidad(string)": {
+					"notice": "Generar un reporte de una localidad"
+				},
+				"votar(string,address,address)": {
+					"notice": "Votar"
+				}
+			},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contracts/votacion.sol": "Votacion"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"contracts/votacion.sol": {
+			"keccak256": "0x1b4a758b06211b0bede5d0cfd8aec9cd3d9454b8754e223ef71e605ed1a2dba0",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://2f3c510dee1d192bfe8a6a13e3530170b919c8234b695dcda1fe8cee09c1a412",
+				"dweb:/ipfs/QmTdeBNcWvjuAMvQ8aiNgFw1qFrQCWJQXnifu1S96onekt"
+			]
+		}
+	},
+	"version": 1
+}

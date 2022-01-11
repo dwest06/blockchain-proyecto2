@@ -1,6 +1,6 @@
 import os
 import json
-from web3 import Web3
+from web3 import Web3, HTTPProvider
 from flask import Flask, request, render_template
 from flask.wrappers import Response
 from flask_cors import CORS
@@ -11,7 +11,15 @@ PATH = os.path.dirname(os.path.realpath(__name__))
 app = Flask(__name__)
 CORS(app)
 
-w3 = Web3()
+rpc_server = os.environ.get('HTTP_SERVER', 'http://127.0.0.1:8545/')
+CONTRACT_ADDRESS = os.environ.get("CONTRACT_ADDRESS", None)
+ABI = None
+with open('abi.txt', 'r') as abiFile:
+    ABI = abiFile.read().rstrip()
+
+w3 = Web3(HTTPProvider(rpc_server))
+
+contract = w3.eth.contract( address = CONTRACT_ADDRESS, abi = ABI)
 
 # Utils
 def send_to_blockchain(transaction):
@@ -25,10 +33,6 @@ def generate_transaction(address, votacion, candidato):
 @app.route("/", methods=['GET'])
 def home():
     return render_template('index.html')
-
-@app.route("/votar/", methods=['GET'])
-def votacion():
-    return render_template('votacion.html')
 
 
 ############# API ##############
