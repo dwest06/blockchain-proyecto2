@@ -9,18 +9,19 @@ def contract():
 @pytest.fixture
 def contract_localidades(contract, owner):
     contract.registrarLocalidad("Caracas", 10, {'from': owner.address})
-    # contract.registrarLocalidad("Zulia", 5, {'from': owner.address})
+    contract.registrarLocalidad("Zulia", 5, {'from': owner.address})
 
 @pytest.fixture
 def contract_votantes(contract, contract_localidades, owner):
-    contract.registrarVotante(owner.address, "Votante1", "Caracas", {'from': owner.address})
-    contract.registrarVotante(accounts[1].address, "Votante2", "Caracas", {'from': owner.address})
+    contract.registrarVotante(owner.address, "Votante1", "Caracas", 1,{'from': owner.address})
+    contract.registrarVotante(accounts[1].address, "Votante2", "Caracas", 2, {'from': owner.address})
+    contract.registrarVotante(accounts[2].address, "Votante3", "Zulia", 2, {'from': owner.address})
 
 @pytest.fixture
 def contract_full(contract, contract_votantes, owner):
     contract.registrarCandidato(owner.address, "Candidato1", 0, "Caracas", {'from': owner.address})
     contract.registrarCandidato(accounts[1].address, "Candidato1", 1, "Caracas", {'from': owner.address})
-    # contract.registrarCandidato(accounts[2].address, "Candidato1", 1, "Zulia", {'from': owner.address})
+    contract.registrarCandidato(accounts[2].address, "Candidato1", 1, "Zulia", {'from': owner.address})
 
 @pytest.fixture
 def owner():
@@ -55,8 +56,8 @@ def test_getLocalidades(contract, owner):
     assert len(contract.getLocalidades()) == 2
 
 def test_registrar_votantes(contract, contract_localidades, owner):
-    contract.registrarVotante(owner.address, "Votante1", "Caracas", {'from': owner.address})
-    contract.registrarVotante(accounts[1].address, "Votante2", "Caracas", {'from': owner.address})
+    contract.registrarVotante(owner.address, "Votante1", "Caracas", 1, {'from': owner.address})
+    contract.registrarVotante(accounts[1].address, "Votante2", "Caracas", 2, {'from': owner.address})
 
     assert contract.votantes(0)[0] == owner.address
     assert contract.votantes(1)[0] == accounts[1].address
@@ -83,6 +84,15 @@ def test_votar(contract, contract_full, owner):
     candGob = contract.getCandidatos(localidad, 1, {'from': owner.address})
     contract.votar(localidad, candPresi[0][0], candGob[0][0], {'from': owner.address})
     # contract.votar(localidad, candPresi[0][0], accounts[1].address, {'from': owner.address})
+
+def test_votar_presidente_blanco(contract, contract_full, owner):
+    pass
+
+def test_votar_gobernador_blanco(contract, contract_full, owner):
+    pass
+
+def test_votar_todo_blanco(contract, contract_full, owner):
+    pass
 
 def test_reporte_ganadores(contract, contract_full, owner):
     # Mismo proceso de votar
@@ -117,3 +127,5 @@ def test_reporte_ganadores(contract, contract_full, owner):
         else:
             assert False
     
+def test_reporte_localidad(contract, contract_full, owner):
+    pass

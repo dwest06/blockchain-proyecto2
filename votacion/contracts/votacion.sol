@@ -6,6 +6,11 @@ contract Votacion {
     // Enums
     enum Cargo { Presidente, Gobernador }
 
+    struct CentroVotacion{
+        uint256 id;
+        uint256 votantes;
+    }
+
     // Estructuras
     struct Localidad {
         string nombre;
@@ -16,6 +21,7 @@ contract Votacion {
         address id;
         string nombre;
         string localidad;
+        uint256 centroVotacion;
     }
 
     struct Candidato{
@@ -24,6 +30,12 @@ contract Votacion {
         string localidad;
         Cargo cargo;
         uint256 votos;
+    }
+
+    struct CandidatoEstadistica{
+        address id;
+        string nombre;
+        uint256 porcentaje;
     }
 
     // Variables de entorno
@@ -37,6 +49,7 @@ contract Votacion {
     Localidad[] public localidades; // Lista de las localidades registradas
     mapping (address => uint) indexVotantes;
     Votante[] public votantes; // Lista de los votantes registrados
+    mapping (address => bool) existeVotantes;
 
     // Estructuras de Votantes y Candidatos 
     mapping (string => address[]) public votantesLocalidad; // Obtener lista de Votantes de una localidad
@@ -74,6 +87,17 @@ contract Votacion {
         require( !registroVotantes[msg.sender], "Ya realizo su voto.");
         _;
     }
+    modifier existLocalidad(string memory nombre){
+        Localidad memory localidad = buscarLocalidad(nombre);
+        require(memcmp(bytes(localidad.nombre), bytes(nombre)), "Esta localidad no existe");
+        _;
+    }
+
+    // UTILS
+    function memcmp(bytes memory a, bytes memory b) internal pure returns(bool){
+        return (a.length == b.length) && (keccak256(a) == keccak256(b));
+    }
+
     constructor(
         string memory _nombreVotacion
     ){
@@ -123,13 +147,20 @@ contract Votacion {
         @param nombre nombre del Votante
         @param nombreLocalidad nombre de la localidad del cargo
      */
-    function registrarVotante(address id, string memory nombre, string memory nombreLocalidad) public isOwner{
-        // Verificar que la localidad exista
+    function registrarVotante(
+        address id, 
+        string memory nombre, 
+        string memory nombreLocalidad,
+        uint256 centroVotacion
+    ) public isOwner existLocalidad(nombreLocalidad){
         // Verificar que no exista el address ya registrado como votante
-        Votante memory votante = Votante(id, nombre, nombreLocalidad);
+        require(!existeVotantes[id], "Votante ya se encuentra registrado");
+        // Registrar Votante
+        Votante memory votante = Votante(id, nombre, nombreLocalidad, centroVotacion);
         votantes.push(votante);
         uint index = votantes.length - 1;
         indexVotantes[id] = index;
+        existeVotantes[id] = true;
         emit VotanteRegistrado(votante);
     }
 
@@ -149,11 +180,13 @@ contract Votacion {
         @param cargo Cargo de la candidatura
         @param localidad localidad del cargo
      */
-    function registrarCandidato(address id, string memory nombre, Cargo cargo, string memory localidad) public isOwner isVotante(id){
-        // Verificar que la localidad exista
-        // Verificar que exista el address ya registrado como votante
+    function registrarCandidato(
+        address id, 
+        string memory nombre, 
+        Cargo cargo, 
+        string memory localidad
+    ) public isOwner existLocalidad(localidad) isVotante(id) {
         // Verificar que que el address no exista registrado como otro votante independiente de la localidad
-
 
         // Crear el candidato
         Candidato memory candidato = Candidato(id, nombre, localidad, cargo, 0 );
@@ -202,6 +235,8 @@ contract Votacion {
         address idCandidatoPresidente, 
         address idCandidatoGobernador
     ) public estaVotacionAbierta isVotante(msg.sender) yaVoto returns (bool){
+        // Revisar voto blanco
+
         // Buscar Candidato a Presidente y sumarle 1 a los votos
         Candidato storage candidatoPresi = buscarCandidatoPresidente(idCandidatoPresidente);
         candidatoPresi.votos += 1;
@@ -211,6 +246,7 @@ contract Votacion {
 
         // Registrar voto del votante
         registroVotantes[msg.sender] = true;
+        totalVotantes += 1;
         return true;
     }
 
@@ -222,6 +258,19 @@ contract Votacion {
         emit VotacionCerrada();
     }
 
+    function obtenerGanadorPresidencia() private view returns (Candidato memory){
+        // Ganador de presidencia
+        Candidato memory ganadorPresidencia;
+        uint mayor = 0;
+        for( uint i = 0; i < candidatosPresidente.length; i+=1){
+            if ( candidatosPresidente[i].votos > mayor){
+                mayor = candidatosPresidente[i].votos;
+                ganadorPresidencia = candidatosPresidente[i];
+            }
+        }
+        return ganadorPresidencia;
+    }
+
     /**
         @notice Regresar ganadores con sus porcentajes
         @return Lista Ordenada de los ganadores con su porcentaje
@@ -230,21 +279,15 @@ contract Votacion {
         // TODO: Hay que verificar que ya se haya cerrado la votacion?
 
         // Ganador de presidencia
-        Candidato memory ganadorPresidencia;
-        uint mayor = 0;
-        for( uint i = 0; i < candidatosPresidente.length; i+=1){
-            if ( candidatosPresidente[i].votos > mayor){
-                ganadorPresidencia = candidatosPresidente[i];
-            }
-        }
+        Candidato memory ganadorPresidencia = obtenerGanadorPresidencia();
 
         // Ganadores Gobernaciones
         uint countLocalidades = localidades.length;
-        Candidato[] memory ganadoresGobernacion = new Candidato[](countLocalidades);
+        Candidato[] memory ganadoresGobernacion = new Candidato[](countLocalidades - 1);
         for( uint j = 0; j < localidades.length; j+=1){
             Localidad memory localidad = localidades[j];
             Candidato[] memory candidatos = candidatosGobernadorLocalidad[localidad.nombre];
-            mayor = 0;
+            uint mayor = 0;
             for( uint k = 0; k < candidatos.length; k+=1){
                 if (candidatos[k].votos > mayor){
                     ganadoresGobernacion[j] = (candidatos[k]);
@@ -258,7 +301,35 @@ contract Votacion {
         @notice Generar un reporte de una localidad
         @return Lista de candidatos de una localidad
      */
-    function reporteLocalidad(string memory localidad) public view returns (bool){
+    function reporteLocalidad(string memory nombreLocalidad) 
+        public view existLocalidad(nombreLocalidad) returns (CandidatoEstadistica[] memory){
+        Localidad memory localiddad = buscarLocalidad(nombreLocalidad);
+
+        // Lista de votantes de la localidad
+        address[] memory votantesLocal = votantesLocalidad[nombreLocalidad];
+        uint256 cantidadVotantesRegistrados = votantesLocal.length;
+
+        // Estadistica Presidente
+
+
+        // Estadisticas Gobernador
+        uint256 cantidadVotantes = 0;
+        Candidato[] memory candidatosLocal = candidatosGobernadorLocalidad[nombreLocalidad];
+        CandidatoEstadistica[] memory estadisticas = new CandidatoEstadistica[](candidatosLocal.length);
+        
+        for( uint256 i = 0; i < candidatosLocal.length; i+=1){
+            Candidato memory candidato = candidatosLocal[i];
+            cantidadVotantes += candidato.votos;
+            CandidatoEstadistica memory cand = CandidatoEstadistica(
+                candidato.id,
+                candidato.nombre,
+                candidato.votos/cantidadVotantesRegistrados
+            );
+            estadisticas[i] = cand;
+        }
+
+        return estadisticas;
+
     }
 
 
