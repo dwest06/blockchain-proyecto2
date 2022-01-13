@@ -1,5 +1,6 @@
 import os
 import json
+from .abi import abi as ABI
 from web3 import Web3, HTTPProvider
 from flask import Flask, request, render_template
 from flask.wrappers import Response
@@ -13,9 +14,6 @@ CORS(app)
 
 rpc_server = os.environ.get('HTTP_SERVER', 'http://127.0.0.1:8545/')
 CONTRACT_ADDRESS = os.environ.get("CONTRACT_ADDRESS", None)
-ABI = None
-with open('abi.txt', 'r') as abiFile:
-    ABI = abiFile.read().rstrip()
 
 w3 = Web3(HTTPProvider(rpc_server))
 

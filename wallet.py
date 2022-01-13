@@ -11,6 +11,10 @@ class Wallet(object):
         self.name = name
         self.lastname = lastname
         self.email = email
+        self.privkey = None
+        self.pubkey = None
+        self.address = None
+        self.checksum_address = None
 
     # Identities
     def get_full_name(self) -> str:
