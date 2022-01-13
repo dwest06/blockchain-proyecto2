@@ -1,6 +1,6 @@
 import os
 import json
-from .abi import abi as ABI
+from .config import ABI, HTTP_SERVER, CONTRACT_ADDRESS
 from web3 import Web3, HTTPProvider
 from flask import Flask, request, render_template
 from flask.wrappers import Response
@@ -12,19 +12,9 @@ PATH = os.path.dirname(os.path.realpath(__name__))
 app = Flask(__name__)
 CORS(app)
 
-rpc_server = os.environ.get('HTTP_SERVER', 'http://127.0.0.1:8545/')
-CONTRACT_ADDRESS = os.environ.get("CONTRACT_ADDRESS", None)
-
-w3 = Web3(HTTPProvider(rpc_server))
-
+# Conexion con el contrato
+w3 = Web3(HTTPProvider(HTTP_SERVER))
 contract = w3.eth.contract( address = CONTRACT_ADDRESS, abi = ABI)
-
-# Utils
-def send_to_blockchain(transaction):
-    pass
-
-def generate_transaction(address, votacion, candidato):
-    pass
 
 ############ HTML ##############
 
@@ -35,30 +25,32 @@ def home():
 
 ############# API ##############
 
-@app.route("/api/localidades/", methods=['GET'])
-def localidades() -> Response:
-    # Conectarse al SC y obtener las localidades registradas
-    localidades = ['Caracas', 'Carabobo', 'Zulia', 'Aragua']
-    return Response(json.dumps(localidades))
-
-@app.route("/api/votar/<string:localidad>/", methods=['POST'])
-def ir_votar(localidad: str) -> Response:
-    address = request.form.get('address')
-
-    elecciones = {
-        'presidente': [
-            'Candidato1',
-            'Candidato2',
-            'Candidato3'
-        ],
-        "gobernador": [
-            'Candidato1',
-            'Candidato2',
-            'Candidato3'
-        ]
-    }
+@app.route("/api/obtener-votar/", methods=['POST'])
+def ir_votar() -> Response:
+    data =request.get_json(force=True) 
+    address = data.get('address')
+    print(address)
+    # Obtener el votando con el address
+    # (id, nombre, localidad, centroVotacion)
+    votante = contract.functions.getVotante(address).call()
+    
+    print(votante)
     # Buscar candidatos segun la localidad
+    # [(id, nombre, localidad, cargo, votos), ...]
+    candidatosPresi = contract.functions.getCandidatos(votante[2], 0).call()
+    candidatosGob = contract.functions.getCandidatos(votante[2], 1).call()
 
+    # Armar el dict
+    elecciones = {
+        'presidente': [],
+        'gobernador': [],
+    }
+
+    for candidato in candidatosPresi:
+        elecciones['presidente'].append([candidato[0], candidato[1]])
+
+    for candidato in candidatosGob:
+        elecciones['gobernador'].append([candidato[0], candidato[1]])
 
     return Response(json.dumps(elecciones))
 
@@ -70,12 +62,9 @@ def registrar_voto() -> Response:
     localidad = data.get('localidad')
     candidatoPresi = data.get('presidente')
     candidatoGob = data.get('gobernador')
+
     print(address, localidad, candidatoPresi, candidatoGob)
 
-    # Generar la transaccion dado los datos del votante
-    # transaction = generate_transaction(address, votacion, candidato)
-
-    # Enviar la transaccion a la blockchain
-    # send_to_blockchain(transaction)
+    contract.functions.votar()
 
     return Response(json.dumps("Se ha registrado el voto"), status=200)

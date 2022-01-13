@@ -1,4 +1,10 @@
-abi = [
+import json
+from web3 import Web3, HTTPProvider
+# from .config import ABI, HTTP_SERVER, CONTRACT_ADDRESS
+VOTANTES_FILE = './wallets.json'
+HTTP_SERVER = 'http://127.0.0.1:8545/'
+CONTRACT_ADDRESS = '0x3194cBDC3dbcd3E11a07892e7bA5c3394048Cc87'
+ABI = [
     {
         'inputs': [
             {
@@ -101,6 +107,11 @@ abi = [
                         'internalType': "string",
                         'name': "localidad",
                         'type': "string"
+                    },
+                    {
+                        'internalType': "uint256",
+                        'name': "centroVotacion",
+                        'type': "uint256"
                     }
                 ],
                 'indexed': False,
@@ -335,6 +346,11 @@ abi = [
                         'internalType': "string",
                         'name': "localidad",
                         'type': "string"
+                    },
+                    {
+                        'internalType': "uint256",
+                        'name': "centroVotacion",
+                        'type': "uint256"
                     }
                 ],
                 'internalType': "struct Votacion.Votante",
@@ -500,6 +516,11 @@ abi = [
                 'internalType': "string",
                 'name': "nombreLocalidad",
                 'type': "string"
+            },
+            {
+                'internalType': "uint256",
+                'name': "centroVotacion",
+                'type': "uint256"
             }
         ],
         'name': "registrarVotante",
@@ -615,16 +636,33 @@ abi = [
         'inputs': [
             {
                 'internalType': "string",
-                'name': "localidad",
+                'name': "nombreLocalidad",
                 'type': "string"
             }
         ],
         'name': "reporteLocalidad",
         'outputs': [
             {
-                'internalType': "bool",
+                'components': [
+                    {
+                        'internalType': "address",
+                        'name': "id",
+                        'type': "address"
+                    },
+                    {
+                        'internalType': "string",
+                        'name': "nombre",
+                        'type': "string"
+                    },
+                    {
+                        'internalType': "uint256",
+                        'name': "porcentaje",
+                        'type': "uint256"
+                    }
+                ],
+                'internalType': "struct Votacion.CandidatoEstadistica[]",
                 'name': "",
-                'type': "bool"
+                'type': "tuple[]"
             }
         ],
         'stateMutability': "view",
@@ -667,6 +705,11 @@ abi = [
                 'internalType': "string",
                 'name': "localidad",
                 'type': "string"
+            },
+            {
+                'internalType': "uint256",
+                'name': "centroVotacion",
+                'type': "uint256"
             }
         ],
         'stateMutability': "view",
@@ -726,3 +769,36 @@ abi = [
         'type': "function"
     }
 ]
+
+# Conexion con el contrato
+w3 = Web3(HTTPProvider(HTTP_SERVER))
+contract = w3.eth.contract( address = CONTRACT_ADDRESS, abi = ABI)
+
+localidades = []
+# Localidades
+with open('localidades.txt', 'r') as file:
+    for i in file.read().split('\n'):
+        localidades.append(i)
+
+
+# Leer Json de Votantes
+file = open(VOTANTES_FILE, 'r')
+votantes = json.loads(file.read())
+
+# Candidatos
+candidatosPresidencia = []
+candidatosGobernador = {}
+
+for votante in votantes.values():
+    if int(votante.get('candidato')) == 1:
+        candidatosPresidencia.append(votante)
+    elif int(votante.get('candidato')) == 2:
+
+        localidad = votante.get('localidad')
+
+        aux = candidatosGobernador.get(localidad)
+        if not aux:
+            candidatosGobernador[localidad] = [] 
+        candidatosGobernador[localidad].append(votante)
+
+print(localidades, candidatosPresidencia)

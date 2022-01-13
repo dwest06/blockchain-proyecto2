@@ -57,13 +57,13 @@
 
                 <h2>Seleccionar Localidad</h2>
 
-                <div class="dropdown center">
+                <!-- <div class="dropdown center">
                     <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
                         Localidades
                     </button>
                     <ul id="localidades" class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                     </ul>
-                </div>
+                </div> -->
 
                 <button type="button" class="btn btn-success" onclick="postVotante()">Votar</button>
 
@@ -123,7 +123,7 @@
         let currentState = 'home';
         let states = ['home', 'votacion', 'final', 'resultados'];
         let localidadSelected = null;
-        let metamaskConectado = null;
+        let metamaskConectado = '0x37b290393384b0A4Ccc4868849b9930d5DFC4C23';
         let persidenteSelected = null;
         let gobernadorSelected = null;
 
@@ -257,12 +257,12 @@
         let createCandidatoCard = (candidato, idRow) => {
             let title = document.createElement('h5');
             title.classList = "card-title";
-            title.textContent = candidato;
+            title.textContent = candidato[1];
 
             let button = document.createElement('button');
             button.classList = "btn btn-info";
             button.textContent = "Votar";
-            button.dataset.candidato = candidato
+            button.dataset.candidato = candidato[0]
             button.addEventListener('click',
                 event => {
                     // Limpiar voto
@@ -308,17 +308,12 @@
                 return;
             }
 
-            if (!localidadSelected){
-                alert ("Necesitas seleccionar una localidad");
-                return;
-            }
-
             // Traer la info de votacion
             const body = {
                 address: metamaskConectado,
             }
-            const response = await postrequest(`/votar/${localidadSelected}/`, body);
-            
+            const response = await postrequest(`/obtener-votar/`, body);
+            console.log(response)
             // Acomodar la vista de votacion
             let candidatosPresi = response.presidente;
             let candidatosGob = response.gobernador;
@@ -380,7 +375,7 @@
 
 
         // EJECUCIONES AL INICIAR
-        getLocalidades();
+        // getLocalidades();
         isMetamaskConectado();
 
     </script>

@@ -10,40 +10,6 @@ from concurrent.futures import ThreadPoolExecutor
 VOTANTES_FILE = './wallets.json'
 URL_SERVER = 'http://localhost:5000'
 
-
-def send_voto(votante, centros, candidatosPresidente, candidatosGobernador, count):
-
-    address = votante.get('address')
-    localidad = votante.get('localidad')
-    centro = votante.get('centro')
-    candidatoPresi = random.choice(candidatosPresidente)
-    candidatoGob = random.choice(candidatosGobernador.get(localidad))
-    
-    # body del votante
-    body = {
-        'address': address,
-        'localidad': localidad,
-        'presidente': candidatoPresi,
-        'gobernador': candidatoGob
-    }
-
-    # url = ''
-    url = f"{centros[0]}:{centros[1]}/api/votar/"
-    # Buscar la url del centro
-    # for i in centros:
-    #     if centros[0][-1] == centro:
-    #         url = f"{centros[0]}:{centros[1]}/api/votar/"
-    
-    # Enviar la peticion
-    response = requests.post(url, data=body)
-
-    print(response)
-
-
-def test():
-    time.sleep(1)
-    print("AAAAAAAAA")
-
 class GeneradorVotos():
 
     def __init__(self, file, concurrency):
@@ -60,13 +26,13 @@ class GeneradorVotos():
 
         for votante in self.votantes.values():
             if int(votante.get('candidato')) == 1:
-                self.candidatosPresidencia.append(votante)
+                self.candidatosPresidencia.append(votante['address'])
             elif int(votante.get('candidato')) == 2:
                 localidad = votante.get('localidad')
                 aux = self.candidatosGobernador.get(localidad)
                 if not aux:
                     self.candidatosGobernador[localidad] = [None] # Inicializar con None para el caso de voto blanco
-                self.candidatosGobernador[localidad].append(votante)
+                self.candidatosGobernador[localidad].append(votante['address'])
 
 
         # Leer archivos 
@@ -76,7 +42,7 @@ class GeneradorVotos():
                 self.centros.append(fd.readline().rstrip().split(' '))
 
         # pprint(self.votantes)
-        # pprint(self.centros)
+        pprint(self.centros)
         # print(self.candidatosPresidencia)
         # print(self.candidatosGobernador)
 
@@ -84,25 +50,45 @@ class GeneradorVotos():
         """
         Funcion para ejecutar los votos al servidor
         """
-        print(self.concurrency, type(self.concurrency))
         pool = ThreadPoolExecutor(self.concurrency)
         print("Empezando Pool")
+        url = ''
+        body = {}
+        for count, votante in enumerate(self.votantes.values()):
+            address = votante['address']
+            localidad = votante['localidad']
+            candidatoPresi = random.choice(self.candidatosPresidencia)
+            candidatoGob = random.choice(self.candidatosGobernador.get(localidad))
+            url = f"http://{self.centros[0][0]}:{self.centros[0][1]}/api/votar/"
+            body = {
+                'address': address,
+                'localidad': localidad,
+                'presidente': candidatoPresi,
+                'gobernador': candidatoGob
+            }
+            pool.submit(self.test, count, address, localidad, candidatoPresi, candidatoGob, url)
 
-        pool.submit(test)
 
-        pool.submit(
-            send_voto,
-            votante = list(self.votantes.values())[0],
-            centros = self.centros,
-            candidatosPresidencia = self.candidatosPresidencia,
-            candidatosGobernador = self.candidatosGobernador,
-            count = 0
-        )
-        # for count, votante in enumerate(self.votantes.values()):
-        #     print(count)
+            # print(count)
 
-
+        response = requests.post(url, data=body)
+        print(response)
         print("Listo")
+
+    def test(self, count, address, localidad, candidatoPresi, candidatoGob, url):
+        # time.sleep(0.1)
+        # body del votante
+        body = {
+            'address': address,
+            'localidad': localidad,
+            'presidente': candidatoPresi,
+            'gobernador': candidatoGob
+        }
+
+        # Enviar la peticion
+        response = requests.post(url, data=json.dumps(body))
+        print("Hilo ", count, response)
+
 
 
 if __name__ == "__main__":

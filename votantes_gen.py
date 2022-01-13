@@ -30,6 +30,8 @@ class Votantes():
         wallets = {}
         wallet_json = {}
 
+        localidades = set()
+
         for line in Lines:
             linea_temp = line.strip().split()
             #print("Line{}: {}".format(count, linea_temp))
@@ -37,6 +39,7 @@ class Votantes():
             voters_key = []
 
             location = linea_temp[0]
+            localidades.add(location)
             voters_by_location = int(linea_temp[1])
             voting_centers = int(linea_temp[2])
 
@@ -54,14 +57,15 @@ class Votantes():
                 wallet_json[person.email] = {
                     "name": person.name,
                     "location": location,
-                    "voting center": random.randint(1, voting_centers),
+                    "votingCenter": random.randint(1, voting_centers),
                     "privateKey": person.privkey,
                     "publicKey": person.pubkey,
                     "address": person.address,
                     "checksum_address": person.checksum_address,
                     "balance": 10000000,
+
                     # 0==No candidato, 1==candidato presidencia, 2==candidato gobernador
-                    "candidato": 0,                
+                    "candidato": 0,
                 }
                 print(f"Generating wallet {count}")
                 count += 1
@@ -73,9 +77,16 @@ class Votantes():
         cls.choose_candidates(wallet_json, list(wallet_json.keys()), 1)
 
 
+        # Escribir los votantes
         with open('wallets.json', 'w+') as file:
             text = json.dumps(wallet_json, indent = 3)
             file.write(text)
+        
+        # Escribir las localidades
+        with open('localidades.txt', 'w+') as file:
+            for i in localidades:
+                file.writelines(f"{i}\n")
+        
 
         # Guardar Wallets
         voters.wallets = wallets
