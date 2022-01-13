@@ -23,8 +23,6 @@ class Votantes():
         voters = cls()
         num_voters = 0
         count = 0
-        porcentaje = 10
-        #print(f"numero de lineas total:{len(Lines)}")
 
         # Dict for storing voters
         wallets = {}
@@ -32,7 +30,6 @@ class Votantes():
 
         for line in Lines:
             linea_temp = line.strip().split()
-            #print("Line{}: {}".format(count, linea_temp))
 
             voters_key = []
 
@@ -52,7 +49,9 @@ class Votantes():
                 # Save person
                 wallets[person.email] = person
                 wallet_json[person.email] = {
+                    "full_name": person.get_full_name(),
                     "name": person.name,
+                    "last name": person.lastname,
                     "location": location,
                     "voting center": random.randint(1, voting_centers),
                     "privateKey": person.privkey,

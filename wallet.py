@@ -7,15 +7,21 @@ class Wallet(object):
     Almacenamiento para private key de usuarios
     """
 
-    def __init__(self, name: str, email: str):
+    def __init__(self, name: str, lastname: str, email: str):
         self.name = name
+        self.lastname = lastname
         self.email = email
+
+    # Identities
+    def get_full_name(self) -> str:
+        return f"{self.name} {self.lastname}"
 
     @classmethod
     def generate_random_person(cls):
         name = names.get_first_name()
-        email = f"{name}-{random.randint(0,999)}@testmail.com"
-        return cls(name, email)
+        last = names.get_last_name()
+        email = f"{name}-{last}{random.randint(0,9999)}@testmail.com"
+        return cls(name, last, email)
 
     def generate_keys(self):
         # https://github.com/Destiner/blocksmith
