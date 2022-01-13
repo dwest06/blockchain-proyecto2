@@ -10,6 +10,10 @@ class Wallet(object):
     def __init__(self, name: str, email: str):
         self.name = name
         self.email = email
+        self.privkey = None
+        self.pubkey = None
+        self.address = None
+        self.checksum_address = None
 
     @classmethod
     def generate_random_person(cls):
