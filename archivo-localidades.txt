@@ -1,24 +1,24 @@
-Amazonas
-Anzoátegui
-Apure
-Aragua
-Barinas
-Bolívar
-Carabobo
-Cojedes
-Delta Amacuro
-Distrito Capital
-Falcón
-Guárico
-Lara
-Mérida
-Miranda
-Monagas
-Nueva Esparta
-Portuguesa
-Sucre
-Táchira
-Trujillo
-Vargas
-Yaracuy
-Zulia
+Amazonas 100 10
+Anzoátegui 100 10
+Apure 100 10
+Aragua 100 10
+Barinas 100 10
+Bolívar 100 10
+Carabobo 100 10
+Cojedes 100 10
+DeltaAmacuro 100 10
+DistritoCapital 100 10
+Falcón 100 10
+Guárico 100 10
+Lara 100 10
+Mérida 100 10
+Miranda 100 10
+Monagas 100 10
+NuevaEsparta 100 10
+Portuguesa 100 10
+Sucre 100 10
+Táchira 100 10
+Trujillo 100 10
+Vargas 100 10
+Yaracuy 100 10
+Zulia 100 10

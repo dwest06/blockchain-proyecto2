@@ -27,7 +27,7 @@ class Wallet(object):
         self.privkey = kg.generate_key()
 
         # Generate pubkey from privkey
-        self.pubkey = blocksmith.EthereumWallet._EthereumWallet__private_to_public(self.privkey)
+        self.pubkey = blocksmith.EthereumWallet._EthereumWallet__private_to_public(self.privkey).decode()
         
         # Generate address from pubkey
         self.address = blocksmith.EthereumWallet._EthereumWallet__public_to_address(self.pubkey)
@@ -37,9 +37,3 @@ class Wallet(object):
 
         # Generate checksum address
         self.checksum_address = blocksmith.EthereumWallet.checksum_address(self.address)
-
-        #TODO: Saldo Inicial de 10.000.000 wei (0.01 gwei)
-
-    def localidad(self):
-        estados_Venezuela = ["Amazonas", "Anzoátegui", "Apure", "Aragua", "Barinas", "Bolívar", "Carabobo", "Cojedes", "Delta Amacuro", "Distrito Capital", "Falcón", "Guárico", "Lara", "Mérida", "Miranda", "Monagas", "Nueva Esparta", "Portuguesa", "Sucre", "Táchira", "Trujillo", "Vargas", "Yaracuy", "Zulia"]
-        localidad_electoral = random.choice(estados_Venezuela)
