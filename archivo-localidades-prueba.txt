@@ -1,5 +1,5 @@
-Local1 10 4
-Local2 20 5
-Local3 15 3
-Local4 30 2
-Local5 10 1
+Local1 5 4
+Local2 4 5
+Local3 6 3
+Local4 2 2
+Local5 5 1

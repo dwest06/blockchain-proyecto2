@@ -6,11 +6,6 @@ contract Votacion {
     // Enums
     enum Cargo { Presidente, Gobernador }
 
-    struct CentroVotacion{
-        uint256 id;
-        uint256 votantes;
-    }
-
     // Estructuras
     struct Localidad {
         string nombre;
@@ -236,13 +231,17 @@ contract Votacion {
         address idCandidatoGobernador
     ) public estaVotacionAbierta isVotante(msg.sender) yaVoto returns (bool){
         // Revisar voto blanco
+        if (idCandidatoPresidente != address(0)){
+            // Buscar Candidato a Presidente y sumarle 1 a los votos
+            Candidato storage candidatoPresi = buscarCandidatoPresidente(idCandidatoPresidente);
+            candidatoPresi.votos += 1;
+        }
 
-        // Buscar Candidato a Presidente y sumarle 1 a los votos
-        Candidato storage candidatoPresi = buscarCandidatoPresidente(idCandidatoPresidente);
-        candidatoPresi.votos += 1;
-        // Buscar Candidato a Gobernador y sumarle 1 a los votos
-        Candidato storage candidatoGob = buscarCandidatoGobernador(localidad, idCandidatoGobernador);
-        candidatoGob.votos += 1;
+        if( idCandidatoGobernador != address(0)){
+            // Buscar Candidato a Gobernador y sumarle 1 a los votos
+            Candidato storage candidatoGob = buscarCandidatoGobernador(localidad, idCandidatoGobernador);
+            candidatoGob.votos += 1;
+        }
 
         // Registrar voto del votante
         registroVotantes[msg.sender] = true;
@@ -303,7 +302,7 @@ contract Votacion {
      */
     function reporteLocalidad(string memory nombreLocalidad) 
         public view existLocalidad(nombreLocalidad) returns (CandidatoEstadistica[] memory){
-        Localidad memory localiddad = buscarLocalidad(nombreLocalidad);
+        Localidad memory localidad = buscarLocalidad(nombreLocalidad);
 
         // Lista de votantes de la localidad
         address[] memory votantesLocal = votantesLocalidad[nombreLocalidad];

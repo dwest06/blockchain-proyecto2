@@ -122,18 +122,20 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
     - Metodo para seleccionar candidatos aleatoriamente a partir de los votantes creados
 
 * Generador de Votos:
-    - Metodo para inicializar la votacion
     - Metodo para leer el archivo de centros
     - Metodo para configurar en nivel de concurrencia y centros de votacion
+        - Se puede usar un Pool de Hilos
     - Metodo para enviar votos al servidor de votacion
         - Hacer uso del archivo de centros para saber en que centro debe votar cada votante.
 
 * Servidor de Votacion
+    - Metodo para inicializar el contraro
     - Metodo para recibir peticion de opcion de voto
         - Debe recibir informacion del votante (Nombre, Email, Address)
         - Debe recibir las opciones de voto
     - Metodo para crear la transaccion segun la opcion elegida
     - Metodo para crear la transaccion registrar el derecho al voto del participante
+        - Enviarla al contracto
     - Metodo para enviar las transacciones generadas a la blockchain
     - Nota:
         - Usar alguna libreria para crear un servidor HTTP (Sugerido: Para python usar Flask, para JS usar Express)
@@ -142,40 +144,111 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
 * Contrato Inteligente
     - Structuras:
         - Votante
-        - Candidato
-            - id
+            - ID
             - Nombre
-            - votos a favor
-            - Puesto
-            - localidad
+            - Localidad
+            - Centro de Votacion
+        - Candidato
+            - ID
+            - Nombre
+            - Localidad
+            - Cargo
+            - Votos recibidos
         - Localidad
+            - Nombre
             - Numero de Centros de Votacion
-
 
     - Metodo para inicializar el escenario: (Puede ser el constructor del contrato)
     - Metodo para Reinicializar el escenario: Mismo que inicializar pero un metodo a parte
+        - Reiniciar el alamacenamiento de los Candidatos, se puede dejar las Localidades y Votantes
     - Metodo para Registrar las localidades:
+        - Solo puede registrar el que desplego el contrato (O si tiene permiso)
         - Emitir evento de localidad Registrada
     - Metodo para Registrar Votantes:
+        - Solo puede registrar el que desplego el contrato (O si tiene permiso)
         - Emitir evento de Votante Registrado
-        - Usar un Struct para guardar la estructura del votante y un mapping (address => Votante) para registrar la participacion
     - Metodo para Registrar Candidatos:
+        - Solo puede registrar el que desplego el contrato (O si tiene permiso)
         - Emitir evento de Candidato Registrado
-        - Array de Candidato
-    - Metodo para Recibir la intencion de voto de votantes
+    - Metodo para Recibir la intencion de voto de votantes (VOTAR):
         - Registrar la participacion del votante (sin el voto) y solamente aumentar en 1 segun el candidato votado, esto para preservar la propiedad de voto secreto
-        - Emitir evento de Voto Registrado
-    - Metodo para Cerrar el proceso de votacion: 
+    - Metodo para Cerrar el proceso de votacion:
         - Solo puede cerrarlo el que desplego el contrato
         - Emitir evento de Votacion Cerrada
         - Se puede definir una hora de cierre (Extra)
-    - Metodo para Reportar ganadores con sus porcentajes
+    - Metodo para Reportar ganadores con sus porcentajes:
+        - Colectar el ganador al puesto de Presidente y una lista de ganadores al puesto de Gobernador de cada Localidad
     - Metodo para Dar un reporte por localidades
+        - Colectar una lista con cada Candidato a la Gobernacion de una cierta localidad
+        - Colectar una lista con cada Candidato a la Presidencia
 
 * Visualizador
-    - Generar una interfaz web usando la libreria web3 para conectarse a la blockchain
-    - 
+    - Generar una interfaz web haciendo uso de la Wallet de Metamask
+    - Hacer 3 estados de la app:
+        1. Vista de Home:
+            - Conectar con metamask y buscar con el address la informacion del Votante
+        2. Vista de Votar:
+            - Mostrar las opciones de Candidatos a Presidente y poder votar por uno solo
+            - Mostrar las opciones de Candidatos a Gobernador segun la Localidad del Votante y poder votar por uno solo
+        3. Vista de Resultados:
+            - Mostrar resultados de la Votacion
+            - Mostrar porcentajes de los votos recibidos de los Candidatos
+        4. (EXTRA) Vista de fin de Votacion:
+            - Ultima vista de fin del proceso Electoral
 
-## Dudas
-- La parte de Escenario Electoral dice para interactuar con el centro1, por que especificamente con el centro1?
-- En que momento se deberia crear o reinicializar el contrato inteligente? puede ser despues de generar los votantes, el Escenario de Votacion y la estructura de los candidatos
+
+# Inicializar el proyecto
+
+1. Crear entorno virtual (VirtualEnv) e instalar requerimientos
+
+```bash
+virtualenv -p python3 env/
+source env/bin/activate
+pip install -r requirements.txt
+```
+
+2. Exportar Variables de entorno de Flask
+```bash
+export FLASK_RUN=servidor/app.py
+```
+Nota: Si se quiere poner Flask en modo DEBUG, ejecutar
+```bash
+export FLASK_DEBUG=1
+```
+
+# Correr el proyecto
+
+1. Dentro de la raiz del proyecto, Generar los Votantes Ficticios
+```bash
+python3 genVotantes.py -f archivo-localidades-prueba.txt
+```
+
+Se deben generar 2 archivos:
+    - wallets.json: Contiene la informacion basica de un Votante
+    - localidades.txt: Contiene las localidades usadas
+
+2. En otra terminal, inicializar el servidor de Flask
+```bash
+flask run
+```
+
+Se debe inicializar el servidor a la espera de nuevas solicitudes
+
+3. En otra terminal, cambiarse al directorio "votacion" e inicializar el entorno del Contrato
+```bash
+cd votacion
+brownie run build
+```
+
+Se debe recibir los logs de cada paso completado, al final sale un log de "Listo"
+
+4. En otra terminal (Puede ser en la primera, donde se corrio el script para generar los votantes), generar los votos:
+```bash
+python3 genVotos.py -n centros.txt -nc 2
+```
+Va a empezar a aparecer logs de lo que va recibiendo cada Hilo de ejecucion
+
+5. (Extra) Para poder desde la interfaz web se puede acceder desde el navegador, teniendo el servidor de flask corriendo, a la URL "http://127.0.0.1:5000/"
+
+
+

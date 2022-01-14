@@ -770,35 +770,98 @@ ABI = [
     }
 ]
 
+
 # Conexion con el contrato
 w3 = Web3(HTTPProvider(HTTP_SERVER))
 contract = w3.eth.contract( address = CONTRACT_ADDRESS, abi = ABI)
+# Owner
+owner = contract.functions.owner().call()
 
-localidades = []
-# Localidades
-with open('localidades.txt', 'r') as file:
-    for i in file.read().split('\n'):
-        localidades.append(i)
+print(owner)
 
+# LOCALIDADES
+def store_localidades():
+    localidades = []
+    with open('localidades.txt', 'r') as file:
+        for i in file.read().split('\n'):
+            localidades.append(i)
 
-# Leer Json de Votantes
-file = open(VOTANTES_FILE, 'r')
-votantes = json.loads(file.read())
+    # Ingresar Localidades
+    try: 
+        for localidad in localidades:
+            contract.functions.registrarLocalidad(localidad, 10).transact({'from': owner})
+    except Exception as e:
+        print("Error en Localidades: ", e)
 
-# Candidatos
-candidatosPresidencia = []
-candidatosGobernador = {}
+    print("Localidades Cargadas")
 
-for votante in votantes.values():
-    if int(votante.get('candidato')) == 1:
-        candidatosPresidencia.append(votante)
-    elif int(votante.get('candidato')) == 2:
+# VOTANTES
+def store_votantes():
+    # Leer Json de Votantes
+    file = open(VOTANTES_FILE, 'r')
+    votantes = json.loads(file.read())
+    try:
+        for i in votantes.values():
+            contract.functions.registrarVotante(
+                i['checksum_address'],
+                i['full_name'],
+                i['location'],
+                1
+            ).transact({'from': owner})
+    except Exception as e:
+        print("Error en Votantes: ", e)
 
-        localidad = votante.get('localidad')
+    print("Votantes Cargadas")
 
-        aux = candidatosGobernador.get(localidad)
-        if not aux:
-            candidatosGobernador[localidad] = [] 
-        candidatosGobernador[localidad].append(votante)
+# CANDIDATOS
+def store_candidatos():
 
-print(localidades, candidatosPresidencia)
+    # Leer Json de Votantes
+    file = open(VOTANTES_FILE, 'r')
+    votantes = json.loads(file.read())
+
+    candidatosPresidencia = []
+    candidatosGobernador = {}
+
+    for votante in votantes.values():
+        if int(votante.get('candidato')) == 1:
+            candidatosPresidencia.append(votante)
+        elif int(votante.get('candidato')) == 2:
+            localidad = votante.get('localidad')
+            aux = candidatosGobernador.get(localidad)
+            if not aux:
+                candidatosGobernador[localidad] = [] 
+            candidatosGobernador[localidad].append(votante)
+
+    try:
+        # Presidente
+        for i in candidatosPresidencia:
+            contract.functions.registrarCandidato(
+                i['checksum_address'],
+                i['full_name'],
+                0,
+                i['location'],
+            ).transact({'from': owner})
+    except Exception as e:
+        print("Error en presi: ", e)
+
+    print("Presidentes Cargados")
+
+    try:
+        # Gobernador
+        for i in candidatosGobernador.values():
+            print(i)
+            for j in i:
+                contract.functions.registrarCandidato(
+                    j['checksum_address'],
+                    j['full_name'],
+                    1,
+                    j['location'],
+                ).transact({'from': owner})
+    except Exception as e:
+        print("Error en gob: ", e)
+
+if __name__ == "__main__":
+    store_localidades()
+    store_votantes()
+    store_candidatos()

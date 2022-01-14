@@ -3,8 +3,6 @@ import time
 import argparse
 import requests
 import random
-from pprint import pprint
-from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 
 VOTANTES_FILE = './wallets.json'
@@ -28,7 +26,7 @@ class GeneradorVotos():
             if int(votante.get('candidato')) == 1:
                 self.candidatosPresidencia.append(votante['address'])
             elif int(votante.get('candidato')) == 2:
-                localidad = votante.get('localidad')
+                localidad = votante.get('location')
                 aux = self.candidatosGobernador.get(localidad)
                 if not aux:
                     self.candidatosGobernador[localidad] = [None] # Inicializar con None para el caso de voto blanco
@@ -41,10 +39,7 @@ class GeneradorVotos():
             for i in range(int(n_centros)):
                 self.centros.append(fd.readline().rstrip().split(' '))
 
-        # pprint(self.votantes)
-        pprint(self.centros)
-        # print(self.candidatosPresidencia)
-        # print(self.candidatosGobernador)
+        print(self.candidatosGobernador, self.candidatosPresidencia)
 
     def run(self):
         """
@@ -56,9 +51,9 @@ class GeneradorVotos():
         body = {}
         for count, votante in enumerate(self.votantes.values()):
             address = votante['address']
-            localidad = votante['localidad']
+            localidad = votante['location']
             candidatoPresi = random.choice(self.candidatosPresidencia)
-            candidatoGob = random.choice(self.candidatosGobernador.get(localidad))
+            candidatoGob = random.choice(self.candidatosGobernador.get(localidad, [None]))
             url = f"http://{self.centros[0][0]}:{self.centros[0][1]}/api/votar/"
             body = {
                 'address': address,
@@ -67,12 +62,7 @@ class GeneradorVotos():
                 'gobernador': candidatoGob
             }
             pool.submit(self.test, count, address, localidad, candidatoPresi, candidatoGob, url)
-
-
-            # print(count)
-
-        response = requests.post(url, data=body)
-        print(response)
+        
         print("Listo")
 
     def test(self, count, address, localidad, candidatoPresi, candidatoGob, url):
@@ -88,7 +78,6 @@ class GeneradorVotos():
         # Enviar la peticion
         response = requests.post(url, data=json.dumps(body))
         print("Hilo ", count, response)
-
 
 
 if __name__ == "__main__":

@@ -44,6 +44,7 @@ def ir_votar() -> Response:
     elecciones = {
         'presidente': [],
         'gobernador': [],
+        'localidad': votante[2]
     }
 
     for candidato in candidatosPresi:
@@ -62,9 +63,25 @@ def registrar_voto() -> Response:
     localidad = data.get('localidad')
     candidatoPresi = data.get('presidente')
     candidatoGob = data.get('gobernador')
+    
+    if candidatoPresi == 'null':
+        candidatoPresi = Web3.toHex(0)
+    if candidatoGob == 'null':
+        candidatoGob = Web3.toHex(0)
 
     print(address, localidad, candidatoPresi, candidatoGob)
+    
+    try:
+        contract.functions.votar(localidad, candidatoPresi, candidatoGob).transact({'from': address})
+    except Exception as e:
+        print(e)
+        return Response(json.dumps({"error": "Error" }), status=400)
 
-    contract.functions.votar()
+    return Response(json.dumps({"message":"Se ha registrado el voto"}), status=200)
 
-    return Response(json.dumps("Se ha registrado el voto"), status=200)
+
+@app.route("/api/resultados/", methods=['GET'])
+def resultados() -> Response:
+    resultados = contract.functions.reporteGanadores().call()
+    
+    return Response(json.dumps(resultados), status=200)

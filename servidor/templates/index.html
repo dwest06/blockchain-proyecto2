@@ -67,6 +67,8 @@
 
                 <button type="button" class="btn btn-success" onclick="postVotante()">Votar</button>
 
+                <button type="button" class="btn btn-success" onclick="resultados()">Resultados</button>
+
             </div>
         </div>
 
@@ -123,7 +125,7 @@
         let currentState = 'home';
         let states = ['home', 'votacion', 'final', 'resultados'];
         let localidadSelected = null;
-        let metamaskConectado = '0x37b290393384b0A4Ccc4868849b9930d5DFC4C23';
+        let metamaskConectado = null;
         let persidenteSelected = null;
         let gobernadorSelected = null;
 
@@ -317,6 +319,7 @@
             // Acomodar la vista de votacion
             let candidatosPresi = response.presidente;
             let candidatosGob = response.gobernador;
+            localidadSelected = response.localidad
             let rowPresi = document.getElementById('votar-presidente');
             let rowGob = document.getElementById('votar-gobernador');
 
@@ -327,7 +330,7 @@
                 }
             )
             // Agregar voto blanco
-            rowPresi.appendChild(createCandidatoCard("VOTO BLANCO", 'votar-presidente'));
+            rowPresi.appendChild(createCandidatoCard([null, "VOTO BLANCO"], 'votar-presidente'));
 
             candidatosGob.forEach(
                 candidato => {
@@ -336,7 +339,7 @@
                 }
             )
             // Agregar Voto Blanco
-            rowGob.appendChild(createCandidatoCard("VOTO BLANCO", 'votar-gobernador'));
+            rowGob.appendChild(createCandidatoCard([null, "VOTO BLANCO"], 'votar-gobernador'));
 
             changeState('votacion');
 
@@ -370,7 +373,13 @@
 
             alert(response)
 
-            // changeState('final')
+            changeState('home')
+        }
+
+        let resultados = async () => {
+            // Obtener localidades
+            resultados = await getrequest('/resultados/')
+            console.log(resultados)
         }
 
 

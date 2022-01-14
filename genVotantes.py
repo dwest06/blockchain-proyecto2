@@ -83,8 +83,10 @@ class Votantes():
         
         # Escribir las localidades
         with open('localidades.txt', 'w+') as file:
+            l = ''
             for i in localidades:
-                file.writelines(f"{i}\n")
+                l += f"{i}\n"
+            file.write(l[:-1])
         
 
         # Guardar Wallets
@@ -100,7 +102,7 @@ if __name__ == "__main__":
 
     # Leer los parametros
     parser = argparse.ArgumentParser(description='Process some file.')
-    parser.add_argument('file', type=argparse.FileType('r+'), help='Archivo de localidades')
+    parser.add_argument('-f', type=argparse.FileType('r+'), help='Archivo de localidades')
     args = parser.parse_args()
 
-    generator = Votantes.generate_votantes(args.file)
+    generator = Votantes.generate_votantes(args.f)
