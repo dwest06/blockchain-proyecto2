@@ -1,5 +1,11 @@
+# Proyecto 2: Informe
+
+## Integrantes
+- David Rodriguez 14-10930
+- Gregory Muñoz 16-11313
 
 
+# Resumen del proyecto
 ## 1.1 Generador de Votantes
 
 Generar un conjuto de votantes ficticios, cada uno debe tener:
@@ -114,21 +120,21 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
 
 # Requerimientos para el proyecto:
 
-* Generador de Votantes:
+1. Generador de Votantes:
     - Metodo de generacion random de personas con nombre, apellido y email
     - Meotod para generar claves publicas y privadas para cada persona
     - Metodo para leer el archivo de localidades
     - Metodo para Crear al votante usando los metodos anteriores
     - Metodo para seleccionar candidatos aleatoriamente a partir de los votantes creados
 
-* Generador de Votos:
+2. Generador de Votos:
     - Metodo para leer el archivo de centros
     - Metodo para configurar en nivel de concurrencia y centros de votacion
         - Se puede usar un Pool de Hilos
     - Metodo para enviar votos al servidor de votacion
         - Hacer uso del archivo de centros para saber en que centro debe votar cada votante.
 
-* Servidor de Votacion
+3. Servidor de Votacion
     - Metodo para inicializar el contraro
     - Metodo para recibir peticion de opcion de voto
         - Debe recibir informacion del votante (Nombre, Email, Address)
@@ -141,7 +147,7 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
         - Usar alguna libreria para crear un servidor HTTP (Sugerido: Para python usar Flask, para JS usar Express)
         - Usar la libreria web3 para la comunicacion con el contrato inteligente
 
-* Contrato Inteligente
+4. Contrato Inteligente
     - Structuras:
         - Votante
             - ID
@@ -182,7 +188,7 @@ Nota: En el caso del Gobernador, la zona electoral es la localidad y en caso del
         - Colectar una lista con cada Candidato a la Gobernacion de una cierta localidad
         - Colectar una lista con cada Candidato a la Presidencia
 
-* Visualizador
+5. Visualizador
     - Generar una interfaz web haciendo uso de la Wallet de Metamask
     - Hacer 3 estados de la app:
         1. Vista de Home:
@@ -209,7 +215,7 @@ pip install -r requirements.txt
 
 2. Exportar Variables de entorno de Flask
 ```bash
-export FLASK_RUN=servidor/app.py
+export FLASK_APP=servidor/app.py
 ```
 Nota: Si se quiere poner Flask en modo DEBUG, ejecutar
 ```bash
@@ -251,4 +257,21 @@ Va a empezar a aparecer logs de lo que va recibiendo cada Hilo de ejecucion
 5. (Extra) Para poder desde la interfaz web se puede acceder desde el navegador, teniendo el servidor de flask corriendo, a la URL "http://127.0.0.1:5000/"
 
 
+# Consideraciones
+
+## Desiciones de implementacion
+
+* Se tomaron varias desiciones de implementacion un poco distinto a lo requerido, por ejemplo, el requerimiento de crear un servidor por centro de votacion, para la prueba se esta usando un solo servidor central por temas de hardware, sin embargo con muy pocas modificaciones, por ejemplo, agregar los parametros necesarios de "nombre del centro", "puerto" y "archivo de datos nodo", se puede levantar un conjunto de servidores representando cada uno un servidor dedicado a cada centro de votacion, de esta manera de puede descentralizar la los votantes y evitar fallas de seguridad.
+
+* Otra desicion fue, como se esta trabajando en un ambiente local usando Ganache-cli como nodo de ethereum, es requerido que se las cuentas esten registradas en Ganache, por lo que el registro se hace con las claves privadas de los votantes generados, esto en la practica no es necesario, incluso es muy peligros, en la practica basta con conectar tu wallet al nodo servidor y listo.
+
+* En el Escenario Electoral se esta comunicando directamente con el contrato con la libreria web3.py, no se esta pasando por un servidor de algun centro de votacion ya que este proceso podria ser muy engorroso y probablemente menos seguro que la comunicacion directa con el contrato.
+
+* Se realizaron un conjunto pequeño de UnitTests para comprobar correctitud de contrato
+
+* Para los patrones de Almacenamiento de datos en el contrato, se Implementaron de la siguient forma:
+    En general cada estructura (Localidad, Votante y Candidato) tiene el siguiente patron de almacenamiento(Usando el caso de Votante):
+        - mapping (address => uint256 ) indexVotante;
+        - Votante[] votantes;
+    Esto con la finalidad de poder buscar los datos de un Votante, en este caso, en O(1) ya que se pregunta el indice del votante dado el address y con indice se busca despues en el Arreglo, para agregar un nuevo Votante, teoricamente al ser dinamico, inserta en O(1) (A menos de que se tenga una abstraccion de la implementacion distinta) y agregar la entrada en el mapping igualmente O(1). Finalmente para poder recorrer el arreglo de Votantes, en O(n)
 
